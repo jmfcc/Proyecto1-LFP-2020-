@@ -6,7 +6,9 @@ from AONanalyzer import analizadorAON
 
 setSql = []
 dbSets = {}
-setUse = ""
+setUse = []
+boolReport = False
+eltxt = ""
 
 def getSource():
     ruta = os.path.dirname(os.path.abspath(__file__))
@@ -23,9 +25,21 @@ def getListaSets():
 
 def isSetUse():
     if setUse:
-        return True, setUse
+        return True
     else:
-        return False, setUse
+        return False
+
+def setToUse(toUse):
+    if setUse:
+        if toUse == "None":
+            setUse.clear()
+        else:
+            setUse.clear()
+            setUse.append(toUse)
+            print("Se está usando el set ", toUse)
+    else:
+        setUse.append(toUse)
+        print("Se está usando el set ", toUse)
 
 def getKeysOfSet(setInUse):
     try:
@@ -41,6 +55,11 @@ def createSet(nameOfSet):
         print("El set ", nameOfSet, " ya está registrado")
         print()
 
+def isSetonDB(toUse):
+    if dbSets.keys().__contains__(toUse):
+        return True
+    else:
+        return False
 
 def loadAon(setload, listf):
     listForDict = []
@@ -68,5 +87,14 @@ def loadAon(setload, listf):
         #    for elem in dbSets[K]:
         #        print(elem)
 
-        
+def showAttrb():
+    listAtrb = dbSets[setUse[0]]
+    if boolReport:
+        pass
+    else:
+        print("Set en uso: ", setUse[0].upper())
+        for atrb in listAtrb[0].keys():
+            print("                - ", atrb)
 
+def showWithFormat():
+    pass
