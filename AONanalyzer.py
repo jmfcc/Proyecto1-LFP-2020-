@@ -62,14 +62,14 @@ def getsource():
     #archivo = open(ruta + "/archivo.csv")
     return ruta
 
-db = []
-tipotoken = []
 
 
 #def analizadorAON():
     #ruta = getsource() + "/archivoprueba.aon"
 def analizadorAON(nombrearchivo):
-    db.clear()
+    db = []
+    tipotoken = []
+    #db.clear()
     ruta = getsource() + "/" + nombrearchivo
     file = open(ruta, "r")
 
@@ -232,7 +232,7 @@ def analizadorAON(nombrearchivo):
                                 print(" ------------ Error lexico -----------   ", token, char)
                                 return
                         elif char == ")":
-                            print("FIN DEL ARCHIVO ... ")
+                            print("  -- Archivo Cargado -- ... ")
                         token = " "
                         registratoken = True
                         estadoSiguiente = validaTransicion(estadoActual, char)
@@ -295,7 +295,7 @@ def analizadorAON(nombrearchivo):
                     elif estadoActual == "4":
                         token = token + char
                     estadoActual = validaTransicion(estadoActual, "letras")
-                elif char.isalpha() and (estadoActual == "7" or estadoActual == "8"):
+                elif (char.isalpha() or char.isdigit()) and (estadoActual == "7" or estadoActual == "8"):
                     if estadoActual == "7":
                         token = char
                     elif estadoActual == "8":
@@ -330,13 +330,16 @@ def analizadorAON(nombrearchivo):
                     ignorespaces = True
                     token = " "
                 else:
-                    print("Error de lexico")
+                    print("Error de lexico en cadena o id")
                     return
     print()
     #print(db)
     #for ttk in tipotoken:
     #    print(ttk)
-    return db
+    if estadoActual == "13":
+        return db
+    else:
+        return None
 
                 
             
