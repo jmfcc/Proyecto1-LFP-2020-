@@ -94,7 +94,7 @@ def showAttrb():
     else:
         print("Set en uso: ", setUse[0].upper())
         for atrb in listAtrb[0].keys():
-            print("                - ", atrb)
+            print("                 - ", atrb)
 
 def showWithFormat():
     pass
