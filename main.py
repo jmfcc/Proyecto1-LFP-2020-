@@ -209,7 +209,7 @@ def elmetodo():
     #init("LOAD INTO palabras files archivo.aon")
     #init("LOAD INTO palabras files archivo2.aon")
     init("use set carros")
-    init("use set palabras")
+    #init("use set palabras")
     #init("print in ")
     #init("min abtr")
     init("list attributes")
