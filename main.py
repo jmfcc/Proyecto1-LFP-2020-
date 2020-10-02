@@ -157,7 +157,7 @@ def init(elcomando):
         if listCommand[0] == "create":
             SQL_CLI.createSet(listCommand[2].lower())
             #print("Sets registrados: ",SQL_CLI.getListaSets())
-        if listCommand[0] == "load":
+        elif listCommand[0] == "load":
             #print(SQL_CLI.getListaSets())
             tam = len(listCommand) - 1
             try:
@@ -168,20 +168,50 @@ def init(elcomando):
                     print("Error de comando")
             except IndexError:
                 print("Error de comando")
+        elif listCommand[0] == "use":
+            if len(listCommand) == 3:
+                if SQL_CLI.isSetonDB(listCommand[2]):
+                    SQL_CLI.setToUse(listCommand[2])
+                else:
+                    SQL_CLI.setToUse("None")
+                    print("El set " + listCommand[2] +" no posee registros para ser utilizado")
+            else:
+                print("Error de comando")
+        elif listCommand[0] == "list":
+            if len(listCommand) == 2:
+                if SQL_CLI.isSetUse():
+                    SQL_CLI.showAttrb()
+                else:
+                    print("No se ha establecido el set a usar")
+            else:
+                print("Error de comando")
+        elif listCommand[0] == "print":
+            
+            pass
+        elif listCommand[0] == "max":
+            pass
+        elif listCommand[0] == "min":
+            pass
+        elif listCommand[0] == "sum":
+            pass
+        elif listCommand[0] == "count":
+            pass
     else:
         print("Error de comando")
 
 
 def elmetodo():
     init("CREATE SET carros")
-    #init("CREATE SET palabras")
+    init("CREATE SET palabras")
     #init("LOAD INTO carros files archivo.aon, archivo2.aon, archivo3.aon")
     init("LOAD INTO carros files archivo.aon")
     init("LOAD INTO carros files archivo2.aon")
-    #init("LOAD INTO palabras files archivo2.aon")
     #init("LOAD INTO palabras files archivo.aon")
+    #init("LOAD INTO palabras files archivo2.aon")
     init("use set carros")
-    init("print in ")
-    init("min abtr")
+    init("use set palabras")
+    #init("print in ")
+    #init("min abtr")
+    init("list attributes")
 
 elmetodo()
