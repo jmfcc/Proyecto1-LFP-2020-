@@ -1,4 +1,5 @@
 import os
+from historialLex import regHist
 import SQL_CLI
 #setSql = []
 
@@ -48,7 +49,9 @@ tokens = [  ['0', 'create', '1'] ,
             ['23', 'atrbset', '24'] ,
             ['24', ',', '23'] ,
             ['23', '*', '25'] ,
-            ['0', 'count', '23']
+            ['0', 'count', '23'],
+            ['0', 'report', '26'],
+            ['26', 'tokens', '27']
         ]
 
 commandSql=[]
@@ -101,7 +104,8 @@ def lecturacomando(comando):
                     listCommand.append(token.lower())
         else:
             if estadoactual == "8" and char == ",":
-                estadoactual = validaTransicion(estadoactual, ".aon") #obtiene el estado siguiente del token buscado
+                #estadoactual = validaTransicion(estadoactual, ".aon") #obtiene el estado siguiente del token buscado
+                estadoactual = validaTransicion(estadoactual, char) #obtiene el estado siguiente del token buscado
                 if token:
                     #Validar si el archivo es de extension .aon
                     nombre, extension = os.path.splitext(token)
@@ -124,7 +128,7 @@ def lecturacomando(comando):
                     listCommand.append(char)
             elif not char.isspace():
                 token += char
-                if estadoactual == "8" or estadoactual == "7":
+                if estadoactual == "7":
                     estadoactual = "8"
                 elif estadoactual == "23":
                     estadoactual = "24"
@@ -180,7 +184,11 @@ def init(elcomando):
     if isComand:
         #print("\n ------ ", listCommand, " ------ ")
         if listCommand[0] == "create":
-            SQL_CLI.createSet(listCommand[2].lower())
+            if len(listCommand) == 3:
+                regHist(listCommand)
+                SQL_CLI.createSet(listCommand[2].lower())
+            else:
+                print("Error de comando")
             #print("Sets registrados: ",SQL_CLI.getListaSets())
         elif listCommand[0] == "load":
             #print(SQL_CLI.getListaSets())
@@ -189,6 +197,7 @@ def init(elcomando):
                 try:
                     n, ext = os.path.splitext(listCommand[tam][0])
                     if ext == ".aon":
+                        regHist(listCommand)
                         SQL_CLI.loadAon(listCommand[2], listCommand[tam])
                     else:
                         print("Error de comando")
@@ -199,6 +208,7 @@ def init(elcomando):
         elif listCommand[0] == "use":
             if len(listCommand) == 3:
                 if SQL_CLI.isSetonDB(listCommand[2]):
+                    regHist(listCommand)
                     SQL_CLI.setToUse(listCommand[2])
                 else:
                     SQL_CLI.setToUse("None")
@@ -208,6 +218,7 @@ def init(elcomando):
         elif listCommand[0] == "list":
             if len(listCommand) == 2:
                 if SQL_CLI.isSetUse():
+                    regHist(listCommand)
                     SQL_CLI.showAttrb()
                 else:
                     print("No se ha establecido el set a usar")
@@ -216,6 +227,7 @@ def init(elcomando):
         elif listCommand[0] == "print":
             if len(listCommand) == 3:
                 if colorlist.__contains__(listCommand[2]):
+                    regHist(listCommand)
                     SQL_CLI.setPrintInColor(listCommand[2])
                 else:
                     print("Error de color")
@@ -225,6 +237,7 @@ def init(elcomando):
             if len(listCommand) == 2:
                 if SQL_CLI.isSetUse():
                     if SQL_CLI.getKeysOfSet().__contains__(listCommand[1]):
+                        regHist(listCommand)
                         SQL_CLI.searchMax(listCommand[1])
                     else:
                         print("Error, atributo no encontrado")
@@ -236,6 +249,7 @@ def init(elcomando):
             if len(listCommand) == 2:
                 if SQL_CLI.isSetUse():
                     if SQL_CLI.getKeysOfSet().__contains__(listCommand[1]):
+                        regHist(listCommand)
                         SQL_CLI.searchMin(listCommand[1])
                     else:
                         print("Error, atributo no encontrado")
@@ -249,6 +263,7 @@ def init(elcomando):
                     tm = len(listCommand) - 1
                     try:
                         if listCommand[1][0] == "*" and SQL_CLI.getKeysOfSet():
+                            regHist(listCommand)
                             SQL_CLI.doSum(listCommand[1])
                         else:
                             isOK = True
@@ -256,6 +271,7 @@ def init(elcomando):
                                 if not SQL_CLI.getKeysOfSet().__contains__(at):
                                     isOK = False
                             if isOK:
+                                regHist(listCommand)
                                 SQL_CLI.doSum(listCommand[tm])
                             else:
                                 print("Error, atributo no encontrado")
@@ -271,6 +287,7 @@ def init(elcomando):
                     tm = len(listCommand) - 1
                     try:
                         if listCommand[1][0] == "*" and SQL_CLI.getKeysOfSet():
+                            regHist(listCommand)
                             SQL_CLI.doCount(listCommand[1])
                         else:
                             isOK = True
@@ -278,6 +295,7 @@ def init(elcomando):
                                 if not SQL_CLI.getKeysOfSet().__contains__(at):
                                     isOK = False
                             if isOK:
+                                regHist(listCommand)
                                 SQL_CLI.doCount(listCommand[tm])
                             else:
                                 print("Error, atributo no encontrado")
@@ -287,9 +305,18 @@ def init(elcomando):
                     print("No se ha definido el set a usar")
             else:
                 print("Error de comando")
+        elif listCommand[0] == "report":
+            if len(listCommand) == 2:
+                regHist(listCommand)
+                SQL_CLI.reportTokens()
+            else:
+                print("Error de comando")
     else:
         print("Error de comando")
-
+    print()
+    
+def toReportHtml():
+    pass
 
 def elmetodo():
     init("CREATE SET carros")
@@ -311,5 +338,7 @@ def elmetodo():
     init("count precio, descripcion")
     #init("count precio")
     #init("count *")
+    init("print in yellow")
+    init("report tokens")
 
 elmetodo()
