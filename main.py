@@ -1,7 +1,8 @@
 import os
 import SQL_CLI
 #setSql = []
-simpltok = ["\"", ","]
+
+colorlist = ["blue", "red", "green", "yellow", "orange", "pink"]
 tokens = [  ['0', 'create', '1'] ,
             ['1', 'set', '2'] ,        
             ['2', 'idset', '3'] ,      
@@ -81,6 +82,8 @@ def lecturacomando(comando):
                     token = ""
                     if estadoactual == "7":
                         isReserved = False
+                    if estadoactual == "23":
+                        isReserved = False
             if countchar == len(comando) and token:
                 if estadoactual == "2" and listCommand[0] == "create":
                     listCommand.append(token.lower())
@@ -91,6 +94,10 @@ def lecturacomando(comando):
                     else:
                         return False, listCommand
                 elif estadoactual == "21" and listCommand[0] == "print":
+                    estadoactual = validaTransicion(estadoactual, "color")
+                    listCommand.append(token.lower())
+                elif estadoactual == "22" and (listCommand[0] == "max" or listCommand[0] == "min"):
+                    estadoactual = validaTransicion(estadoactual, "atrbset")
                     listCommand.append(token.lower())
         else:
             if estadoactual == "8" and char == ",":
@@ -104,9 +111,23 @@ def lecturacomando(comando):
                         listCommand.append(char)
                     else:
                         return False, listCommand
+            elif estadoactual == "23" and char == "*":
+                estadoactual = validaTransicion(estadoactual, char)
+                listAlternativ.append(char)
+                listCommand.append(listAlternativ)
+            elif estadoactual == "24" and char == ",":
+                estadoactual = validaTransicion("23", "atrbset")
+                estadoactual = validaTransicion(estadoactual, char)
+                if token:
+                    listAlternativ.append(token)
+                    token = ""
+                    listCommand.append(char)
             elif not char.isspace():
                 token += char
-                estadoactual = "8"
+                if estadoactual == "8" or estadoactual == "7":
+                    estadoactual = "8"
+                elif estadoactual == "23":
+                    estadoactual = "24"
             else:
                 if token:
                     if estadoactual == "8":
@@ -118,17 +139,21 @@ def lecturacomando(comando):
                             isReserved = True
                         else:
                             return False, listCommand
-
+                    if estadoactual == "24":
+                        listAlternativ.append(token)
+                        token = ""
+                        isReserved = True
             if countchar == len(comando) and token:
                 if estadoactual == "8":
                     nombre, extension = os.path.splitext(token)
                     if extension == ".aon":
                         listAlternativ.append(token)
-                        isReserved = True
                         listCommand.append(listAlternativ)
                     else:
                         return False, listCommand
-
+                if estadoactual == "24":
+                    listAlternativ.append(token)
+                    listCommand.append(listAlternativ)
     if listCommand:
         return True, listCommand
     else:
@@ -153,20 +178,23 @@ def init(elcomando):
     isComand, listCommand = lecturacomando(elcomando)
     #isComand, listCommand = lecturacomando("Loadinto carros")
     if isComand:
-        print(" ------ ", listCommand, " ------ ")
+        #print("\n ------ ", listCommand, " ------ ")
         if listCommand[0] == "create":
             SQL_CLI.createSet(listCommand[2].lower())
             #print("Sets registrados: ",SQL_CLI.getListaSets())
         elif listCommand[0] == "load":
             #print(SQL_CLI.getListaSets())
             tam = len(listCommand) - 1
-            try:
-                n, ext = os.path.splitext(listCommand[tam][0])
-                if ext == ".aon":
-                    SQL_CLI.loadAon(listCommand[2], listCommand[tam])
-                else:
+            if len(listCommand) >= 5:
+                try:
+                    n, ext = os.path.splitext(listCommand[tam][0])
+                    if ext == ".aon":
+                        SQL_CLI.loadAon(listCommand[2], listCommand[tam])
+                    else:
+                        print("Error de comando")
+                except IndexError:
                     print("Error de comando")
-            except IndexError:
+            else:
                 print("Error de comando")
         elif listCommand[0] == "use":
             if len(listCommand) == 3:
@@ -186,16 +214,79 @@ def init(elcomando):
             else:
                 print("Error de comando")
         elif listCommand[0] == "print":
-            
-            pass
+            if len(listCommand) == 3:
+                if colorlist.__contains__(listCommand[2]):
+                    SQL_CLI.setPrintInColor(listCommand[2])
+                else:
+                    print("Error de color")
+            else:
+                print("Error de comando")
         elif listCommand[0] == "max":
-            pass
+            if len(listCommand) == 2:
+                if SQL_CLI.isSetUse():
+                    if SQL_CLI.getKeysOfSet().__contains__(listCommand[1]):
+                        SQL_CLI.searchMax(listCommand[1])
+                    else:
+                        print("Error, atributo no encontrado")
+                else:
+                    print("No se ha definido el set a usar")
+            else:
+                print("Error de comando")
         elif listCommand[0] == "min":
-            pass
+            if len(listCommand) == 2:
+                if SQL_CLI.isSetUse():
+                    if SQL_CLI.getKeysOfSet().__contains__(listCommand[1]):
+                        SQL_CLI.searchMin(listCommand[1])
+                    else:
+                        print("Error, atributo no encontrado")
+                else:
+                    print("No se ha definido el set a usar")
+            else:
+                print("Error de comando")
         elif listCommand[0] == "sum":
-            pass
+            if len(listCommand) >= 2:
+                if SQL_CLI.isSetUse():
+                    tm = len(listCommand) - 1
+                    try:
+                        if listCommand[1][0] == "*" and SQL_CLI.getKeysOfSet():
+                            SQL_CLI.doSum(listCommand[1])
+                        else:
+                            isOK = True
+                            for at in listCommand[tm]:
+                                if not SQL_CLI.getKeysOfSet().__contains__(at):
+                                    isOK = False
+                            if isOK:
+                                SQL_CLI.doSum(listCommand[tm])
+                            else:
+                                print("Error, atributo no encontrado")
+                    except:
+                        print("Error de comando")
+                else:
+                    print("No se ha definido el set a usar")
+            else:
+                print("Error de comando")
         elif listCommand[0] == "count":
-            pass
+            if len(listCommand) >= 2:
+                if SQL_CLI.isSetUse():
+                    tm = len(listCommand) - 1
+                    try:
+                        if listCommand[1][0] == "*" and SQL_CLI.getKeysOfSet():
+                            SQL_CLI.doCount(listCommand[1])
+                        else:
+                            isOK = True
+                            for at in listCommand[tm]:
+                                if not SQL_CLI.getKeysOfSet().__contains__(at):
+                                    isOK = False
+                            if isOK:
+                                SQL_CLI.doCount(listCommand[tm])
+                            else:
+                                print("Error, atributo no encontrado")
+                    except:
+                        print("Error de comando")
+                else:
+                    print("No se ha definido el set a usar")
+            else:
+                print("Error de comando")
     else:
         print("Error de comando")
 
@@ -205,13 +296,20 @@ def elmetodo():
     init("CREATE SET palabras")
     #init("LOAD INTO carros files archivo.aon, archivo2.aon, archivo3.aon")
     init("LOAD INTO carros files archivo.aon")
-    init("LOAD INTO carros files archivo2.aon")
+    #init("LOAD INTO carros files archivo2.aon, load.aon")
     #init("LOAD INTO palabras files archivo.aon")
-    #init("LOAD INTO palabras files archivo2.aon")
+    init("LOAD INTO palabras files archivo2.aon")
     init("use set carros")
     #init("use set palabras")
-    #init("print in ")
-    #init("min abtr")
+    init("print in orange")
+    init("min precio")
+    init("MAX precio")
     init("list attributes")
+    #init("sum numero, cadena")
+    #init("sum numero")
+    init("sum *")
+    init("count precio, descripcion")
+    #init("count precio")
+    #init("count *")
 
 elmetodo()
