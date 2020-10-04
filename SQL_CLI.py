@@ -2,6 +2,8 @@ from colorama import init, Fore
 import time
 import json
 import os
+import reporte
+import historialLex
 #import reporte
 from AONanalyzer import analizadorAON
 
@@ -207,6 +209,10 @@ def esNumero(val):
                 #print(n)
                 return False
     return True
+
+def reportTokens():
+    reporte.generaHtml("TOKENS", ["Lexema", "Id Token", "Descripción"], historialLex.getHisto())
+    #historialLex.muestraHist()
 
 def showWithFormat():
     pass
