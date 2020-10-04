@@ -171,7 +171,7 @@ def analizadorAON(nombrearchivo):
                                     tipotoken.append("True" + " <--- " + elementos["bool"])
                                     tokenalmacenado = True
                                 else:
-                                    print (" ------ Error en valor asignado -------- ", type(token))
+                                    print (" ------ Error en valor asignado -------- ")
                                     return
                                 #estadoActual = estadoSiguiente
                             token = " " #limpiamos el token --------------------------
@@ -214,7 +214,7 @@ def analizadorAON(nombrearchivo):
                                         tipotoken.append("True" + " <--- " + elementos["bool"])
                                         tokenalmacenado = True
                                     else:
-                                        print (" ------ Error en valor asignado -------- ", token, " - ", char, " -  ", estadoActual, "  " , estadoSiguiente)
+                                        print (" ------ Error en valor asignado -------- ")
                                         return
                                     #estadoActual = estadoSiguiente
                                 token = " "
@@ -229,7 +229,7 @@ def analizadorAON(nombrearchivo):
                                 db.append(dicctemp.copy()) # se agrega el diccionario a la base de datos
                                 dicctemp.clear() # se limpia el diccionario temporal
                             else:
-                                print(" ------------ Error lexico -----------   ", token, char)
+                                print(" ------------ Error lexico -----------   ")
                                 return
                         elif char == ")":
                             print("  -- Archivo Cargado -- ... ")
@@ -237,11 +237,11 @@ def analizadorAON(nombrearchivo):
                         registratoken = True
                         estadoSiguiente = validaTransicion(estadoActual, char)
                     else:
-                        print(" ------------ Error lexico -----------   ", token, "  ", char, "   ", estadoActual, "  " , estadoSiguiente)
+                        print(" ------------ Error lexico -----------   ")
                         return
 
                     if estadoSiguiente == "None":
-                        print(" ------------ Error de sintaxis -----------   ", token, "  ", char, "   ", estadoActual, "  " , estadoSiguiente)
+                        print(" ------------ Error de sintaxis -----------   ")
                         return
                     #elif not registratoken:
                     #    estadoActual = estadoSiguiente
@@ -284,12 +284,12 @@ def analizadorAON(nombrearchivo):
                                 tipotoken.append("True" + " <--- " + elementos["bool"])
                                 tokenalmacenado = True
                             else:
-                                print (" ------ Error en valor asignado -------- ", token, " - ", char, " -  ", estadoActual, "  " , estadoSiguiente)
+                                print (" ------ Error en valor asignado -------- ")
                                 return
                             #estadoActual = estadoSiguiente
                         token = " " #limpiamos el token --------------------------
             else:
-                if char.isalpha() and (estadoActual == "3" or estadoActual == "4"):
+                if (char.isalpha() or char.isdigit()) and (estadoActual == "3" or estadoActual == "4"):
                     if estadoActual == "3":
                         token = char
                     elif estadoActual == "4":
