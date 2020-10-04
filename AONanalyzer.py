@@ -62,10 +62,6 @@ def getsource():
     #archivo = open(ruta + "/archivo.csv")
     return ruta
 
-
-
-#def analizadorAON():
-    #ruta = getsource() + "/archivoprueba.aon"
 def analizadorAON(nombrearchivo):
     db = []
     tipotoken = []
@@ -307,7 +303,7 @@ def analizadorAON(nombrearchivo):
                     token = token + char
                     estadoSiguiente = validaTransicion(estadoActual, " ")
                 elif char == "]" and estadoActual == "4": # fin de nombre de atributo -----------------
-                    listakeyitem.append(token)
+                    listakeyitem.append(token.lower())
                     #print(token, " --------------- key")
                     tipotoken.append(token + " <--- " + elementos["letras"])
                     
