@@ -60,13 +60,13 @@ def setToUse(toUse): #Modifica el set a usar  //////////////
         else:
             setUse.clear()
             setUse.append(toUse)
-            print("Se está usando el set ", toUse)
+            print("Se está usando el set ", toUse.upper())
     else:
         if toUse == "None":
             setUse.clear()
         else:
             setUse.append(toUse)
-            print("Se está usando el set ", toUse)
+            print("Se está usando el set ", toUse.upper())
 
 def getKeysOfSet(): #Devuelve las keys de un set
     try:
@@ -92,7 +92,6 @@ def isSetonDB(toUse): #Valida si un set tiene registros en la db
 def loadAon(setload, listf): #Carga los archivos a la db ////////
     listForDict = []
     for f in listf:
-        #print(" -- Si llega la lista de archivos -- ", f)
         fileOn = getSource() + "/" + f
         if os.path.isfile(fileOn):
             print(" -- Fichero " + f +" encontrado -- ")
@@ -108,12 +107,6 @@ def loadAon(setload, listf): #Carga los archivos a la db ////////
         else:
             dcT = {setload : listForDict}
             dbSets.update(dcT)
-        #dbSets.update(dcT)
-        #print("From " + setload + ":")
-        #for K in dbSets.keys():
-        #    print(K)
-        #    for elem in dbSets[K]:
-        #        print(elem)
 
 def showAttrb(): #Muestra los atributos del set   /////////
     listAtrb = dbSets[setUse[0]]
@@ -213,6 +206,85 @@ def esNumero(val):
 def reportTokens():
     reporte.generaHtml("TOKENS", ["Lexema", "Id Token", "Descripción"], historialLex.getHisto())
     #historialLex.muestraHist()
+
+def readSiQLScript(scpt):
+    fileOn = getSource() + "/" + scpt
+    if os.path.isfile(fileOn):
+        listT = []
+        print(" -- Fichero " + scpt +" encontrado -- ")
+        file = open(fileOn, "r")
+        com = ""
+        for li in file:
+            for ch in li.rstrip():
+                if not ch == ";":
+                    com += ch
+                else:
+                    if com:
+                        listT.append(com)
+                    com = ""
+        return listT
+    else:
+        print(" -- Fichero " + f +" no encontrado -- ")
+
+def selectReq(latr, conditions):
+    #print("si llega")
+    if "*" in latr:
+        if not conditions:
+            atr = getKeysOfSet()
+            setU = dbSets[setUse[0]]
+            listResult = []
+            for reg in setU:
+                ltmp = []
+                for at in atr:
+                    try:
+                        ltmp.append(reg[at])
+                    except KeyError:
+                        ltmp.append("Null")
+                listResult.append(ltmp.copy())
+            sep = separadorvertical(atr)
+            print(sep)
+            line = ""
+            for k in atr:
+                line += (aniadeespacio(k.upper()) + "||")
+            print(line)
+            print(sep)
+            for res in listResult:
+                line = ""
+                for reg in res:
+                    line += (aniadeespacio(reg) + "||")
+                print(line)
+                print(sep)
+        else:
+            pass
+        #dar formato al resultado
+    else:
+        pass
+
+def separadorvertical(n):
+    try:
+        if n == "*":
+            n = ["*", "*", "*", "*"]
+    except:
+        pass
+    sep = ""
+    init = True
+    for i in range(0, len(n)):
+        if init:   
+            sep = "--------------------------------||"
+            init = False
+        else:
+            sep = sep + "--------------------------------||"
+    return sep
+
+def aniadeespacio(elemento):
+    elem = str(elemento)
+    k = 32
+    k = k - len(elem)
+    spaces = ""
+    for i in range(0, k):
+        spaces = spaces + " "
+    elem = elem + spaces
+    return elem
 
 def showWithFormat():
     pass
