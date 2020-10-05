@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import SQL_CLI
 
 hist = []
@@ -25,6 +27,7 @@ dictLexm = {
     ".aon":["tk_AON", "Lexema no reservado que indica el nombre del archivo a cargar (Este siempre debe ser de extension .aon)"],
     "report":["tk_rep", "Indica que se generará un reporte"],
     "tokens":["tk_tokens", "Parte del comando report, que indica que se generará un reporte de los tokens leidos por el afd"],
+    "select":["tk_select", "Indica que el comando realizará una búsqueda en los registros"],
 }
 
 def regHist(listCommand):
@@ -161,7 +164,20 @@ def regHist(listCommand):
             lt.append(tk)
             lt.extend(dictLexm[tk])
             hist.append(lt.copy())
-        
+    elif listCommand[0] == "select": # Incompleto (Solo Report Tokens)
+        for tk in listCommand:
+            lt = []
+            try:
+                if tk[0]== "*":
+                    lt.append(tk[0])
+                    lt.extend(dictLexm[tk[0]])
+                else:
+                    lt.append(tk)
+                    lt.extend(dictLexm[tk])
+            except KeyError:
+                lt.extend(dictLexm["atrbset"])
+            hist.append(lt.copy())
+    
 def getHisto():
     return hist
 
