@@ -13,7 +13,8 @@ tokens = [  ['0', 'create', '1'] ,
             ['6', 'files', '7'] ,      
             ['7', '.aon', '8'] ,       
             ['8', ',', '7'] ,
-            ['0', 'use', '1'] ,        
+            ['0', 'use', '1'] ,  
+
             ['0', 'select', '9'] ,     
             ['9', 'atrbset', '10'] ,   
             ['10', ',', '9'] ,
@@ -25,18 +26,24 @@ tokens = [  ['0', 'create', '1'] ,
             ['13', '!=', '14'] ,       
             ['13', '<', '15'] ,        
             ['13', '>', '15'] ,        
-            ['15', '=', '14'] ,        
+            ['15', '=', '14'] ,
+
             ['14', '\\"', '16'] ,      
             ['15', '\\"', '16'] ,      
             ['16', 'cadena', '17'] ,   
-            ['17', '\\"', '18'] ,      
-            ['14', 'numero', '18'] ,   
-            ['14', 'booleano', '18'] , 
-            ['15', 'numero', '18'] ,   
-            ['15', 'booleano', '18'] , 
+            ['17', '\\"', '18'] , 
+
+            ['14', 'num/bool', '26'] ,
+            ['15', 'num/bool', '26'] ,
+
             ['18', 'or', '12'] ,       
             ['18', 'and', '12'] ,      
-            ['18', 'xor', '12'] ,      
+            ['18', 'xor', '12'] ,     
+
+            ['26', 'or', '12'] ,       
+            ['26', 'and', '12'] ,      
+            ['26', 'xor', '12'] ,     
+
             ['0', 'list', '19'] ,      
             ['19', 'attributes', '3'] ,
             ['0', 'print', '20'] ,     
@@ -50,8 +57,9 @@ tokens = [  ['0', 'create', '1'] ,
             ['24', ',', '23'] ,
             ['23', '*', '25'] ,
             ['0', 'count', '23'],
-            ['0', 'report', '26'],
-            ['26', 'tokens', '27']
+            ['0', 'script', '28'],
+            ['28', '.siql', '29'],
+            ['29', ',', '28']
         ]
 
 commandSql=[]
@@ -62,7 +70,7 @@ def lecturacomando(comando):
     listAlternativ = []
     token = ""
     isReserved = True
-    readSpace = False
+    #readSpace = False
     #leeatrb = False
     countchar = 0
     estadoactual = "0"
@@ -74,7 +82,7 @@ def lecturacomando(comando):
                 token += char
             #print(searchToken(token.lower()))
             if searchToken(token.lower()):  # valida que el elemento entrante exista en memoria ID - 
-                if searchToken(token.lower())=="idset":
+                if searchToken(token.lower())=="idset" and (countchar == len(comando) or char.isspace()):
                     estadosiguiente = validaTransicion(estadoactual, "idset") #obtiene el estado siguiente del token buscado
                 else:
                     estadosiguiente = validaTransicion(estadoactual, token.lower()) #obtiene el estado siguiente del token buscado
@@ -83,9 +91,19 @@ def lecturacomando(comando):
                     listCommand.append(token.lower())
                     #print(token.lower())
                     token = ""
-                    if estadoactual == "7":
+                    if estadoactual == "7": #Cambio a lexemas no reservados
                         isReserved = False
-                    if estadoactual == "23":
+                    elif estadoactual == "9":
+                        isReserved = False
+                    elif estadoactual == "12":
+                        isReserved = False
+                    elif estadoactual == "14":
+                        isReserved = False
+                    elif estadoactual == "15":
+                        isReserved = False
+                    elif estadoactual == "23":
+                        isReserved = False
+                    elif estadoactual == "28":
                         isReserved = False
             if countchar == len(comando) and token:
                 if estadoactual == "2" and listCommand[0] == "create":
@@ -115,23 +133,71 @@ def lecturacomando(comando):
                         listCommand.append(char)
                     else:
                         return False, listCommand
+            elif estadoactual == "9" and char == "*" and not token:
+                estadoactual = validaTransicion(estadoactual, char)
+                listAlternativ.append(char)
+                listCommand.append(listAlternativ)
+                isReserved = True
+            elif estadoactual == "10" and char == ",":
+                estadoactual = validaTransicion(estadoactual, char)
+                if token:
+                    listAlternativ.append(token)
+                    token = ""
+                    #listCommand.append(char)
+            elif estadoactual == "14" and char == "\"":
+                estadoactual = validaTransicion(estadoactual, char)
+                token = ""
+            elif estadoactual == "15" and char == "=":
+                estadoactual = validaTransicion(estadoactual, char)
+                listCommand.append(char)
+                token = ""
+            elif estadoactual == "15" and char == "\"":
+                estadoactual = validaTransicion(estadoactual, char)
+                token = ""
+            elif estadoactual == "17" and char == "\"":
+                estadoactual = validaTransicion(estadoactual, char)
+                if token:
+                    listAlternativ.append(token)
+                    token = ""
+                    #listCommand.append(char)
             elif estadoactual == "23" and char == "*":
                 estadoactual = validaTransicion(estadoactual, char)
                 listAlternativ.append(char)
                 listCommand.append(listAlternativ)
             elif estadoactual == "24" and char == ",":
-                estadoactual = validaTransicion("23", "atrbset")
                 estadoactual = validaTransicion(estadoactual, char)
                 if token:
                     listAlternativ.append(token)
                     token = ""
                     listCommand.append(char)
+            elif estadoactual == "29" and char == ",":
+                estadoactual = validaTransicion(estadoactual, char)
+                if token:
+                    nombre, extension = os.path.splitext(token)
+                    if extension == ".siql":
+                        listAlternativ.append(token)
+                        token = ""
+                        listCommand.append(char)
+                    else:
+                        return False, listCommand
             elif not char.isspace():
                 token += char
                 if estadoactual == "7":
                     estadoactual = "8"
+                elif estadoactual == "9":
+                    estadoactual = "10"
+                elif estadoactual == "12":
+                    estadoactual = "13"
+                elif estadoactual == "14":
+                    estadoactual = "26"
+                elif estadoactual == "15":
+                    estadoactual = "26"
+                elif estadoactual == "16":
+                    estadoactual = "17"
                 elif estadoactual == "23":
                     estadoactual = "24"
+                elif estadoactual == "28":
+                    estadoactual = "29"
             else:
                 if token:
                     if estadoactual == "8":
@@ -143,10 +209,31 @@ def lecturacomando(comando):
                             isReserved = True
                         else:
                             return False, listCommand
+                    if estadoactual == "10":
+                        listAlternativ.append(token)
+                        token = ""
+                        listCommand.append(listAlternativ.copy())
+                        listAlternativ.clear()
+                        isReserved = True
+                    if estadoactual == "13":
+                        listAlternativ.append(token)
+                        token = ""
+                        listCommand.append(listAlternativ.copy())
+                        listAlternativ.clear()
+                        isReserved = True
                     if estadoactual == "24":
                         listAlternativ.append(token)
                         token = ""
                         isReserved = True
+                    if estadoactual == "29":
+                        #Validar si el archivo es de extension .aon
+                        nombre, extension = os.path.splitext(token)
+                        if extension == ".siql":
+                            listAlternativ.append(token)
+                            token = ""
+                            isReserved = True
+                        else:
+                            return False, listCommand
             if countchar == len(comando) and token:
                 if estadoactual == "8":
                     nombre, extension = os.path.splitext(token)
@@ -155,9 +242,19 @@ def lecturacomando(comando):
                         listCommand.append(listAlternativ)
                     else:
                         return False, listCommand
+                if estadoactual == "10":
+                    listAlternativ.append(token)
+                    listCommand.append(listAlternativ)
                 if estadoactual == "24":
                     listAlternativ.append(token)
                     listCommand.append(listAlternativ)
+                if estadoactual == "29":
+                    nombre, extension = os.path.splitext(token)
+                    if extension == ".siql":
+                        listAlternativ.append(token)
+                        listCommand.append(listAlternativ)
+                    else:
+                        return False, listCommand
     if listCommand:
         return True, listCommand
     else:
@@ -178,8 +275,22 @@ def searchToken(tokn):
             return "idset"
     return ""
 
-def init(elcomando):
-    isComand, listCommand = lecturacomando(elcomando)
+def analisisSelect(comando):
+    listComando = []
+    token = ""
+    estado = 0
+    for char in comando:
+        token += char
+        if estado == 0:
+            if token == "select":
+                pass
+
+def ejecutaComando(elcomando):
+    if elcomando.replace(" ", "").lower() == "reporttokens":
+        listCommand = ["report", "tokens"]
+        isComand = True
+    else:
+        isComand, listCommand = lecturacomando(elcomando)
     #isComand, listCommand = lecturacomando("Loadinto carros")
     if isComand:
         #print("\n ------ ", listCommand, " ------ ")
@@ -211,6 +322,7 @@ def init(elcomando):
                     regHist(listCommand)
                     SQL_CLI.setToUse(listCommand[2])
                 else:
+                    regHist(listCommand)
                     SQL_CLI.setToUse("None")
                     print("El set " + listCommand[2] +" no posee registros para ser utilizado")
             else:
@@ -311,34 +423,46 @@ def init(elcomando):
                 SQL_CLI.reportTokens()
             else:
                 print("Error de comando")
+        elif listCommand[0] == "script":
+            tam = len(listCommand) - 1
+            if len(listCommand) >= 2:
+                try:
+                    regHist(listCommand)
+                    for scp in listCommand[tam]:
+                        listComOfScript = SQL_CLI.readSiQLScript(scp)
+                        if listComOfScript:
+                            for LCOS in listComOfScript:
+                                print("Comando a ejecutar: ", LCOS.upper())
+                                ejecutaComando(LCOS)
+                        else:
+                            print("No hay comandos en el archivo ", scp)
+                except IndexError:
+                    print("Error de comando")
+            else:
+                print("Error de comando")
+        elif listCommand[0] == "select":
+            print(listCommand)
+            if len(listCommand) == 2:
+                if SQL_CLI.isSetUse():
+                    regHist(listCommand)
+                    SQL_CLI.selectReq(listCommand[1], "")
     else:
         print("Error de comando")
     print()
-    
-def toReportHtml():
-    pass
 
-def elmetodo():
-    init("CREATE SET carros")
-    init("CREATE SET palabras")
-    #init("LOAD INTO carros files archivo.aon, archivo2.aon, archivo3.aon")
-    init("LOAD INTO carros files archivo.aon")
-    #init("LOAD INTO carros files archivo2.aon, load.aon")
-    #init("LOAD INTO palabras files archivo.aon")
-    init("LOAD INTO palabras files archivo2.aon")
-    init("use set carros")
-    #init("use set palabras")
-    init("print in orange")
-    init("min precio")
-    init("MAX precio")
-    init("list attributes")
-    #init("sum numero, cadena")
-    #init("sum numero")
-    init("sum *")
-    init("count precio, descripcion")
-    #init("count precio")
-    #init("count *")
-    init("print in yellow")
-    init("report tokens")
+def initSiQL():
 
-elmetodo()
+    print(" ---------------------------------- SiQL - CLI ------------------------------------")
+    print("\n\tSiQL es un lenguaje declarativo, puedes iniciar creando un set")
+    print()
+    while True:
+        comando = input()
+        if comando.lower() == "exit":
+            print("Finalizando Ejecución")
+            break
+        #elif comando.lower() == "help":
+        #    print("CREATE SET #")
+        else:
+            ejecutaComando(comando)
+
+initSiQL()
